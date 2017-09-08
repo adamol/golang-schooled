@@ -1,0 +1,19 @@
+# Student Management System
+
+A system for teachers to
+- keep of track their classes
+- make notes of students from each class
+- insert grades for students
+- view a students / class progress over a year
+- upload material for the students
+
+potentially there could also be a section for the students
+however this might perhaps warrent a separate service?
+students could then be able to
+- see uploaded material from class (lecture notes, homework etc)
+
+# Features
+
+- an administrator sets up the accounts for the teachers
+- the students can themselves register and "add" their courses
+
