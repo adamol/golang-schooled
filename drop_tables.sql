@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS lectures;
+DROP TABLE IF EXISTS courses;
+
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS teachers;
+
+DROP TABLE IF EXISTS semesters;
+
+
