@@ -5,9 +5,11 @@ import (
     "fmt"
     "strconv"
     "net/http"
+    "database/sql"
     "encoding/json"
 
     "github.com/gorilla/mux"
+    _ "github.com/go-sql-driver/mysql"
 )
 
 type Semester struct {
@@ -166,16 +168,191 @@ func CourseShow(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
     }
 
-    json.NewEncoder(w).Encode(courses[cid])
+    var course = courses[cid]
+
+    json.NewEncoder(w).Encode(course)
+}
+
+func insertDummyData() {
+    db, err := sql.Open("mysql", "root:root@/go_school");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer db.Close();
+
+    insSemester, err := db.Prepare(`
+        INSERT INTO semesters (type, year, start_week, end_week) VALUES(?,?,?,?)
+    `);
+    if err != nil {
+        panic(err.Error());
+    }
+    defer insSemester.Close();
+
+    _, err = insSemester.Exec("fall", 2017, 30, 50);
+    if err != nil {
+        panic(err.Error());
+    }
+
+    insTeacher, err := db.Prepare("INSERT INTO teachers (name) VALUES(?)");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer insTeacher.Close();
+
+    _, err = insTeacher.Exec("John Doe");
+    if err != nil {
+        panic(err.Error());
+    }
+
+    insCourse, err := db.Prepare(`
+        INSERT INTO courses (name, description, semester_id, teacher_id) VALUES(?,?,?,?)
+    `);
+    if err != nil {
+        panic(err.Error());
+    }
+    defer insCourse.Close();
+
+    _, err = insCourse.Exec("Calculus", "Derivates etc", 1, 1);
+    if err != nil {
+        panic(err.Error());
+    }
+}
+
+func insertMoreDummyData() {
+    db, err := sql.Open("mysql", "root:root@/go_school");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer db.Close();
+
+    insCourse, err := db.Prepare(`
+        INSERT INTO courses (name, description, semester_id, teacher_id) VALUES(?,?,?,?)
+    `);
+    if err != nil {
+        panic(err.Error());
+    }
+    defer insCourse.Close();
+
+    _, err = insCourse.Exec("Calculus II", "Integrals etc", 1, 1);
+    if err != nil {
+        panic(err.Error());
+    }
+}
+
+func allCourses() {
+    db, err := sql.Open("mysql", "root:root@/go_school");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer db.Close();
+
+    rows, err := db.Query("SELECT * FROM courses");
+    if err != nil {
+        panic(err.Error());
+    }
+
+    cols, err := rows.Columns()
+    if err != nil {
+        panic(err.Error());
+    }
+
+    values   := make([]sql.RawBytes, len(cols))
+    scanArgs := make([]interface{}, len(values))
+    for i := range values {
+        scanArgs[i] = &values[i]
+    }
+
+    for rows.Next() {
+        err = rows.Scan(scanArgs...)
+        if err != nil {
+            panic(err.Error());
+        }
+
+        var value string
+        for i, col := range values {
+            if col == nil {
+                value = "NULL"
+            } else {
+                value = string(col)
+            }
+            fmt.Println(cols[i], ": ", value)
+        }
+        fmt.Println("--------------------------------")
+    }
+    if err = rows.Err(); err != nil {
+        panic(err.Error())
+    }
+
+	// var products []*Product
+	// for rows.Next() {
+	// 	p := new(Product)
+	// 	if err := rows.Scan(&p.ID, &p.Name, &p.IsMatch, &p.Created); err != nil { ... }
+	// 	products = append(products, p)
+	// }
+	// if err := rows.Err() { ... }
+}
+
+func findCourseById(id int) {
+    db, err := sql.Open("mysql", "root:root@/go_school");
+    if err != nil {
+        panic(err.Error());
+    }
+
+    selCourse, err := db.Prepare("SELECT * FROM courses WHERE id=?");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer selCourse.Close();
+
+	row := selCourse.QueryRow(id)
+
+	var course_id int;
+	var name string;
+	var description string;
+	var semester_id int;
+	var teacher_id int;
+	row.Scan(&course_id, &name, &description, &semester_id, &teacher_id);
+    fmt.Println("id: ", course_id, "name: ", name, "description: ", description);
+
+    selTeacher, err := db.Prepare("SELECT * FROM teachers WHERE id=?");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer selTeacher.Close();
+	teacher := selTeacher.QueryRow(teacher_id)
+
+	var tid int;
+	var teacher_name string;
+	teacher.Scan(&tid, &teacher_name);
+    fmt.Println("teacher: ", teacher_name);
+
+    selSemester, err := db.Prepare("SELECT * FROM semesters WHERE id=?");
+    if err != nil {
+        panic(err.Error());
+    }
+    defer selSemester.Close();
+	semester := selSemester.QueryRow(teacher_id)
+	var sid int;
+	var semester_type string;
+	var semester_year int;
+	var semester_start_week int;
+	var semester_end_week int;
+	semester.Scan(&sid, &semester_type, &semester_year, &semester_start_week, &semester_end_week);
+    fmt.Println("semester: ", semester_type, "|", semester_year);
 }
 
 func main() {
-    router := mux.NewRouter().StrictSlash(true)
+    // insertDummyData()
+    // insertMoreDummyData()
+    // allCourses()
+    findCourseById(1)
 
-    router.HandleFunc("/", Index)
+    router := mux.NewRouter().StrictSlash(true);
+
+    router.HandleFunc("/", Index);
 
     router.HandleFunc("/courses", CourseIndex);
     router.HandleFunc("/courses/{course_id:[0-9]+}", CourseShow);
 
-    log.Fatal(http.ListenAndServe(":8084", router))
+    log.Fatal(http.ListenAndServe(":8084", router));
 }
