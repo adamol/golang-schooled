@@ -135,31 +135,47 @@ type CourseStudent struct {
     StudentId int `json:"student_id"`
 }
 
+/*
+teachers:
+    important --> GET  courses              // list of all courses, filter theirs
+    important --> GET  courses/{courseId}   // lists description, lectures
+    GET  lectures/{lectureId} // click on a lecture to see notes/material
+    POST courses
+    POST courses/{courseId}/students
+    POST courses/{courseId}/lectures
+    PUT  lectures/{lectureId}
+students:
+    important --> GET  courses              // list of all courses, filter theirs
+    important --> GET  courses/{courseId}   // lists description, lectures
+    GET  lectures/{lectureId} // click on a lecture to see notes/material
+*/
+
 func Index(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hello World!")
 }
 
-func StudentsIndex(w http.ResponseWriter, r *http.Request) {
-    json.NewEncoder(w).Encode(students)
+func CourseIndex(w http.ResponseWriter, r *http.Request) {
+    json.NewEncoder(w).Encode(courses)
 }
 
-func StudentsShow(w http.ResponseWriter, r *http.Request) {
-    student_id := mux.Vars(r)["student_id"]
+func CourseShow(w http.ResponseWriter, r *http.Request) {
+    course_id := mux.Vars(r)["student_id"]
 
-	sid, err := strconv.Atoi(student_id)
+	cid, err := strconv.Atoi(course_id)
     if err != nil {
         fmt.Println(err)
     }
 
-    json.NewEncoder(w).Encode(students[sid])
+    json.NewEncoder(w).Encode(courses[cid])
 }
 
 func main() {
     router := mux.NewRouter().StrictSlash(true)
 
     router.HandleFunc("/", Index)
-    router.HandleFunc("/students", StudentsIndex)
-    router.HandleFunc("/students/{student_id:[0-9]+}", StudentsShow)
+
+    router.HandleFunc("/courses", CourseIndex);
+    router.HandleFunc("/courses/{course_id:[0-9]+}", CourseShow);
 
     log.Fatal(http.ListenAndServe(":8084", router))
 }
