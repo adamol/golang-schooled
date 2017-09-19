@@ -1,4 +1,6 @@
 # Student Management System
+curl http://localhost:8084/courses
+curl -H "Content-Type: application/json" -X POST -d '{"username":"xyz","password":"xyz"}' http://localhost:8084/courses
 
 Teachers can:
     - create courses
@@ -21,3 +23,19 @@ Students can:
     - implement database layer (mysql?)
     - implement GET courses and GET courses/{id}
     - separate to MVC structure
+
+
+/*
+teachers:
+    important --> GET  courses              // list of all courses, filter theirs
+    important --> GET  courses/{courseId}   // lists description, lectures
+    GET  lectures/{lectureId} // click on a lecture to see notes/material
+    POST courses
+    POST courses/{courseId}/students
+    POST courses/{courseId}/lectures
+    PUT  lectures/{lectureId}
+students:
+    important --> GET  courses              // list of all courses, filter theirs
+    important --> GET  courses/{courseId}   // lists description, lectures
+    GET  lectures/{lectureId} // click on a lecture to see notes/material
+*/
