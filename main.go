@@ -21,9 +21,11 @@ func main() {
 
     router.HandleFunc("/", Index);
 
-    coursesController := controllers.CoursesController{}
-    router.HandleFunc("/courses", coursesController.Index);
-    router.HandleFunc("/courses/{course_id:[0-9]+}", coursesController.Show);
+    router.HandleFunc("/courses", controllers.CoursesController{}.Index);
+    router.HandleFunc("/courses/{course_id:[0-9]+}", controllers.CoursesController{}.Show);
+
+    // router.HandleFunc("/lectures", controllers.LecturesController{}.Index);
+    // router.HandleFunc("/lectures/{lecture_id:[0-9]+}", controllers.LecturesController{}.Show);
 
     log.Fatal(http.ListenAndServe(":8084", router));
 }

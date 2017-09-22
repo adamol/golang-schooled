@@ -1,8 +1,6 @@
 package models
 
-import (
-    "database/sql"
-)
+import "strconv"
 
 type Course struct {
     Id          int    `json:"id"`
@@ -12,66 +10,49 @@ type Course struct {
     TeacherId   int    `json:"teacher_id"`
 }
 
-func (c Course) List() []*Course {
-    db, _ := sql.Open("mysql", "root:root@/go_school");
-    defer db.Close();
-
-    rows, _ := db.Query("SELECT * FROM courses");
-    defer rows.Close();
+func (self Course) List() []*Course {
+    rows := list("courses")
+    defer rows.Close()
 
     var courses []*Course;
 
     for rows.Next() {
-        course := new(Course)
+        c := new(Course)
         rows.Scan(
-            &course.Id, &course.Name, &course.Description, &course.SemesterId, &course.TeacherId,
+            &c.Id, &c.Name, &c.Description, &c.SemesterId, &c.TeacherId,
         );
-        courses = append(courses, course)
+        courses = append(courses, c)
     }
 
     return courses
 }
 
-func (c Course) FindById(id int) *Course {
-    db, _ := sql.Open("mysql", "root:root@/go_school");
-    defer db.Close();
-
-    coursesQuery, _ := db.Prepare("SELECT * FROM courses WHERE id=?");
-    defer coursesQuery.Close();
-	foundCourse := coursesQuery.QueryRow(id)
-    course := new(Course)
-    foundCourse.Scan(
-        &course.Id, &course.Name, &course.Description,
-        &course.SemesterId, &course.TeacherId,
+func (self Course) FindById(id int) *Course {
+    c := new(Course)
+    findById(id, "courses").Scan(
+        &c.Id, &c.Name, &c.Description, &c.SemesterId, &c.TeacherId,
     );
-
-    return course
-
-    // result := models.QueryBuilder.FindById(id, "courses")
-    // course := new(Course)
-    // result.Scan(
-    //     &course.Id, &course.Name, &course.Description,
-    //     &course.SemesterId, &course.TeacherId,
-    // );
-
-    // c := new(Course)
-    // models.QueryBuilder.FindById(id, "courses").Scan(
-    //     &c.Id, &c.Name, &c.Description, &c.SemesterId, &c.TeacherId,
-    // );
-    // return c
+    return c
 }
 
 func (c Course) Create(name string, description string, semester_id int, teacher_id int) {
-    db, _ := sql.Open("mysql", "root:root@/go_school");
-    defer db.Close();
+    cols := []string{"name", "description", "semester_id", "teacher_id"}
 
-    query, _ := db.Prepare(`
-        INSERT INTO courses (name, description, semester_id, teacher_id) VALUES(?,?,?,?)
-    `);
-    defer query.Close();
+    sid := strconv.Itoa(semester_id)
+    tid  := strconv.Itoa(teacher_id)
+    vals := []string{name, description, sid, tid}
 
-    _, err := query.Exec(name, description, semester_id, teacher_id);
-    if err != nil {
-        panic(err.Error())
-    }
+    insert(cols, vals, "courses")
+    // db, _ := sql.Open("mysql", "root:root@/go_school");
+    // defer db.Close();
+
+    // query, _ := db.Prepare(`
+    //     INSERT INTO courses (name, description, semester_id, teacher_id) VALUES(?,?,?,?)
+    // `);
+    // defer query.Close();
+
+    // _, err := query.Exec(name, description, semester_id, teacher_id);
+    // if err != nil {
+    //     panic(err.Error())
+    // }
 }
